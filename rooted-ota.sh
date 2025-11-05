@@ -20,8 +20,8 @@ if [[ -n "${DEBUG}" ]]; then set -x; fi
 
 # Mandatory params
 DEVICE_ID=${DEVICE_ID:-} # See here for device IDs https://grapheneos.org/releases
-GITHUB_TOKEN=${GITHUB_TOKEN:-''}
-GITHUB_REPO=${GITHUB_REPO:-''}
+GH_TOKEN=${GH_TOKEN:-''}
+GH_REPO=${GH_REPO:-''}
 
 # Optional
 # If you want an OTA patched with magisk, set the preinit for your device
@@ -157,15 +157,15 @@ function checkBuildNecessary() {
   RELEASE_ID=''
   local response
 
-  if [[ -z "$GITHUB_REPO" ]]; then print "Env Var GITHUB_REPO not set, skipping check for existing release" && return; fi
+  if [[ -z "$GH_REPO" ]]; then print "Env Var GH_REPO not set, skipping check for existing release" && return; fi
 
   print "Potential release: ${OTA_VERSION}"
 
   local params=()
-  local url="https://api.github.com/repos/${GITHUB_REPO}/releases"
+  local url="https://api.github.com/repos/${GH_REPO}/releases"
 
-  if [ -n "${GITHUB_TOKEN}" ]; then
-    params+=("-H" "Authorization: token ${GITHUB_TOKEN}")
+  if [ -n "${GH_TOKEN}" ]; then
+    params+=("-H" "Authorization: token ${GH_TOKEN}")
   fi
 
   params+=("-H" "Accept: application/vnd.github.v3+json")
@@ -435,20 +435,20 @@ function base642key() {
 }
 
 function releaseOta() {
-  checkMandatoryVariable 'GITHUB_REPO' 'GITHUB_TOKEN'
+  checkMandatoryVariable 'GH_REPO' 'GH_TOKEN'
 
   local response changelog src_repo current_commit 
 
   if [[ -z "$RELEASE_ID" ]]; then
     src_repo=$(extractGithubRepo "$(git config --get remote.origin.url)")
     
-    if [[ "${GITHUB_REPO}" == "${src_repo}" ]]; then
-      changelog=$(curl -sL -X POST -H "Authorization: token $GITHUB_TOKEN" \
+    if [[ "${GH_REPO}" == "${src_repo}" ]]; then
+      changelog=$(curl -sL -X POST -H "Authorization: token $GH_TOKEN" \
         -d "{
                 \"tag_name\": \"$OTA_VERSION\",
                 \"target_commitish\": \"main\"
               }" \
-        "https://api.github.com/repos/$GITHUB_REPO/releases/generate-notes" | jq -r '.body // empty')
+        "https://api.github.com/repos/$GH_REPO/releases/generate-notes" | jq -r '.body // empty')
       # Replace \n by \\n to keep them as chars
       changelog="Update to [GrapheneOS ${OTA_VERSION}](https://grapheneos.org/releases#${OTA_VERSION}).\n\n$(echo "${changelog}" | sed ':a;N;$!ba;s/\n/\\n/g')"
     else 
@@ -457,23 +457,23 @@ function releaseOta() {
       changelog="Update to [GrapheneOS ${OTA_VERSION}](https://grapheneos.org/releases#${OTA_VERSION}).\n\nRelease created using ${src_repo}@${current_commit}. See [Changelog](https://github.com/${src_repo}/blob/${current_commit}/README.md#notable-changelog)."
     fi
     
-    response=$(curl -sL -X POST -H "Authorization: token $GITHUB_TOKEN" \
+    response=$(curl -sL -X POST -H "Authorization: token $GH_TOKEN" \
       -d "{
               \"tag_name\": \"$OTA_VERSION\",
               \"target_commitish\": \"main\",
               \"name\": \"$OTA_VERSION\",
               \"body\": \"${changelog}\"
             }" \
-      "https://api.github.com/repos/$GITHUB_REPO/releases")
+      "https://api.github.com/repos/$GH_REPO/releases")
     RELEASE_ID=$(echo "${response}" | jq -r '.id // empty')
     if [[ -n "${RELEASE_ID}" ]]; then
       printGreen "Release created successfully with ID: ${RELEASE_ID}"
     elif echo "${response}" | jq -e '.status == "422"' > /dev/null; then
       # In case release has been created in the meantime (e.g. matrix job for multiple devices concurrently)
       RELEASE_ID=$(curl -sL \
-        -H "Authorization: token $GITHUB_TOKEN" \
+        -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${GITHUB_REPO}/releases" | \
+            "https://api.github.com/repos/${GH_REPO}/releases" | \
             jq -r --arg release_tag "${OTA_VERSION}" '.[] | select(.tag_name == $release_tag) | .id // empty')
       if [[ -n "${RELEASE_ID}" ]]; then
         printGreen "Cannot create release but found existing release for ${OTA_VERSION}. ID=$RELEASE_ID"
@@ -500,10 +500,10 @@ function uploadFile() {
   local contentType="$3"
 
   # Note that --data-binary might lead to out of memory
-  curl --fail -X POST -H "Authorization: token $GITHUB_TOKEN" \
+  curl --fail -X POST -H "Authorization: token $GH_TOKEN" \
     -H "Content-Type: $contentType" \
     --upload-file "$sourceFileName" \
-    "https://uploads.github.com/repos/$GITHUB_REPO/releases/$RELEASE_ID/assets?name=$targetFileName"
+    "https://uploads.github.com/repos/$GH_REPO/releases/$RELEASE_ID/assets?name=$targetFileName"
 }
 
 function createOtaServerData() {
@@ -533,7 +533,7 @@ function createOtaServerData() {
     args+=("--file" ".tmp/${flavor}/${DEVICE_ID}.json")
     # e.g. https://github.com/schnatterer/rooted-graphene/releases/download/2023121200-v26.4-e54c67f/oriole-ota_update-2023121200.zip
     # Instead of constructing the location we could also parse it from the upload response
-    args+=("--location" "https://github.com/$GITHUB_REPO/releases/download/$OTA_VERSION/$POTENTIAL_ASSET_NAME")
+    args+=("--location" "https://github.com/$GH_REPO/releases/download/$OTA_VERSION/$POTENTIAL_ASSET_NAME")
   
     .tmp/custota-tool gen-update-info "${args[@]}"
   done
