@@ -72,7 +72,7 @@ jobs:
         # Empty means, use version defined in rooted-ota.sh
         # Note the difference between github.event.inputs (workflow_dispatch) and inputs (workflow_call)
         run: |
-          echo "DEVICE_ID=$(echo '${{ github.event.inputs.device-id || inputs.device-id || 'shiba' }}' | xargs)" >> $GITHUB_ENV
+          echo "DEVICE_ID=$(echo '${{ github.event.inputs.device-id || inputs.device-id || 'tokay' }}' | xargs)" >> $GITHUB_ENV
           if [[ "${{ github.event.inputs.skip-rooted }}" != "true" ]]; then
             echo "MAGISK_PREINIT_DEVICE=$(echo '${{ github.event.inputs.magisk-preinit-device || inputs.magisk-preinit-device || 'sda10' }}' | xargs)" >> $GITHUB_ENV
           fi
