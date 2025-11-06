@@ -8,9 +8,7 @@ If you have another GrapheneOS-supported phone model and would like to use this 
 
 I recommend installing GrapheneOS manually. Do not use the Web-Installer.
 
-Download the [**factory image**](https://grapheneos.org/releases) and follow the [official instructions](https://grapheneos.org/install/cli)  to install GrapheneOS.
-
-TLDR:
+Download the [**factory image**](https://grapheneos.org/releases) here and do the usual (but don't relock the bootloader):
 
 * Enable OEM unlocking
 * Obtain latest `fastboot`
