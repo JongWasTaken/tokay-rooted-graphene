@@ -2,6 +2,8 @@
 # /system/etc/init/gesture_pill.rc #
 ########################################
 
+# Note: inclusion of this file has been disabled, it is only here as reference for potential future modifications
+
 # One‑shot service that runs the overlay commands
 service overlay_override /system/bin/sh -c '\
   resetprop ro.com.google.ime.kb_pad_port_b 1.0

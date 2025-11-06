@@ -318,7 +318,7 @@ function patchOTAs() {
     if ls "$targetFile" >/dev/null 2>&1; then
       printGreen "File $targetFile already exists locally, not patching."
     else
-      patchSystem
+      #patchSystem
       local args=()
 
       args+=("--output" "$targetFile")
@@ -365,13 +365,16 @@ function patchOTAs() {
   done
 }
 
+# Not part of schnatterer/rooted-graphene, was added by Tiebe/rooted-graphene. (gesture_pill.rc does not seem to actually work...)
 function patchSystem() {
+  # extract system image
   .tmp/avbroot ota extract -i ".tmp/$OTA_TARGET.zip" -d extracted
   cd extracted
 
   ../.tmp/avbroot avb unpack -i system.img
   ../.tmp/afsr unpack -i raw.img
 
+  # add file and add selinux policy for it
   cp "../gesture_pill.rc" "fs_tree/system/etc/init/gesture_pill.rc"
 
   cat << EOL >> fs_metadata.toml
@@ -388,6 +391,7 @@ crtime = "2009-01-01T00:00:00Z"
 "security.selinux" = 'u:object_r:system_file:s0\0'
 EOL
 
+  # repack system image and replace original
   export AVB_KEY_PASS="$PASSPHRASE_AVB"
   export OTA_KEY_PASS="$PASSPHRASE_OTA"
 

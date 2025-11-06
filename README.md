@@ -1,13 +1,14 @@
 tokay-rooted-graphene
 ===
-Fork of [rooted-graphene](https://github.com/Tiebe/rooted-graphene), modified to use [pixincreate's Magisk fork](https://github.com/pixincreate/Magisk/releases) and built only for `tokay` (Pixel 9). Also includes gesture pill removal script.
+Fork of [rooted-graphene](https://github.com/Tiebe/rooted-graphene), modified to use [pixincreate's Magisk fork](https://github.com/pixincreate/Magisk/releases) and built only for `tokay` (Pixel 9).  
+If you have another GrapheneOS-supported phone model and would like to use this project as well, open an issue and I will add it to the automatic build system.
 
 ### Installation
 ##### Installing the base system
 
 I recommend installing GrapheneOS manually. Do not use the Web-Installer.
 
-Download [**factory image**](https://grapheneos.org/releases) and follow the [official instructions](https://grapheneos.org/install/cli)  to install GrapheneOS.
+Download the [**factory image**](https://grapheneos.org/releases) and follow the [official instructions](https://grapheneos.org/install/cli)  to install GrapheneOS.
 
 TLDR:
 
@@ -31,10 +32,10 @@ TLDR:
 
 Once GrapheneOS is installed:
 
-* Download the [OTA from releases](https://github.com/JongWasTaken/tokay-rooted-graphene/releases) with **the same version** that you just installed. 
+* Download the patched [OTA from releases](https://github.com/JongWasTaken/tokay-rooted-graphene/releases) with **the same version** that you just installed. 
 * Obtain latest `fastboot`
 * Install [avbroot](https://github.com/chenxiaolong/avbroot)
-* Extract the partition images from the patched OTA that are different from the original.
+* Extract the downloaded OTA using avbroot:
     ```bash
     avbroot ota extract \
         --input /path/to/downloaded/ota.zip \
@@ -61,15 +62,15 @@ Once GrapheneOS is installed:
   ```bash
   fastboot flashall --skip-reboot
   ```
-* Set up the custom AVB public key in the bootloader.
+* Install this repo's custom AVB public key in the bootloader.
     ```bash
     fastboot reboot-bootloader
     fastboot erase avb_custom_key
     curl -s https://raw.githubusercontent.com/JongWasTaken/tokay-rooted-graphene/refs/heads/main/avb_pkmd.bin > avb_pkmd.bin
     fastboot flash avb_custom_key avb_pkmd.bin
     ```
-* Sideload the OTA  
-  (to avoid `Device is corrupt. It can't be trusted` error)
+* Sideload the OTA
+  (Necessary to avoid `Device is corrupt. It can't be trusted.` error)
    1. Run `fastboot reboot recovery` to get into recovery mode
    2. You should see an android icon lying down with the text "No command".  
       Hold the power button and press the volume up button a single time to get into the recovery GUI
@@ -90,10 +91,10 @@ Once GrapheneOS is installed:
   Note: The OTA contains [OEMUnlockOnBoot](https://github.com/chenxiaolong/OEMUnlockOnBoot), so OEM locking should be impossible.  
   Still, better safe than sorry, keep it unlocked.
 
-#### Set up OTA updates
+#### Set up automatic OTA updates
 
 * [Disable system updater app](https://github.com/chenxiaolong/avbroot#ota-updates).
-* Open Custota app and set the OTA server URL to point to this OTA URL: `https://jongwastaken.github.io/tokay-rooted-graphene/magisk/`
+* Open Custota app and set the OTA server URL to this: `https://jongwastaken.github.io/tokay-rooted-graphene/magisk/`
 
 Alternatively you could do updates manually via `adb sideload`:
 * reboot the device and begin holding the volume down button until it boots up into the bootloader interface
