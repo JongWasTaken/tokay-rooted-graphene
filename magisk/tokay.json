@@ -1,7 +1,7 @@
 {
   "version": 2,
   "full": {
-    "location_ota": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2025102800/tokay-2025102800-d2616bc-magisk-canary-30400.zip",
-    "location_csig": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2025102800/tokay-2025102800-d2616bc-magisk-canary-30400.zip.csig"
+    "location_ota": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2025102800/tokay-2025102800-c10695c-magisk-canary-30400.zip",
+    "location_csig": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2025102800/tokay-2025102800-c10695c-magisk-canary-30400.zip.csig"
   }
 }
