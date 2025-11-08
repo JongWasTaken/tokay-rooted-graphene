@@ -319,6 +319,15 @@ function patchOTAs() {
       printGreen "File $targetFile already exists locally, not patching."
     else
       #patchSystem
+        .tmp/avbroot ota patch \
+          -i ".tmp/$OTA_TARGET.zip" \
+          -o ".tmp/$OTA_TARGET.zip.patched" \
+          --key-avb "$KEY_AVB" \
+          --key-ota "$KEY_OTA" \
+          --cert-ota "$CERT_OTA" \
+          --pass-avb-env-var "AVB_KEY_PASS" \
+          --pass-ota-env-var "OTA_KEY_PASS" \
+          --rootless
       local args=()
 
       args+=("--output" "$targetFile")
