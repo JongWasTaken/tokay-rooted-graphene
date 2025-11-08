@@ -325,8 +325,8 @@ function patchOTAs() {
           --key-avb "$KEY_AVB" \
           --key-ota "$KEY_OTA" \
           --cert-ota "$CERT_OTA" \
-          --pass-avb-env-var "AVB_KEY_PASS" \
-          --pass-ota-env-var "OTA_KEY_PASS" \
+          --pass-avb-env-var "PASSPHRASE_AVB" \
+          --pass-ota-env-var "PASSPHRASE_OTA" \
           --rootless
       local args=()
 
