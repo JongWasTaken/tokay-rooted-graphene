@@ -407,6 +407,7 @@ EOL
   rm raw.img
   rm avb.toml
   rm fs_metadata.toml
+  rm -rf fs_tree
 
   # same for product
   ../.tmp/avbroot avb unpack -i product.img
@@ -445,6 +446,7 @@ EOL
   rm raw.img
   rm avb.toml
   rm fs_metadata.toml
+  rm -rf fs_tree
 
   # finally rebuild
   cd ..
