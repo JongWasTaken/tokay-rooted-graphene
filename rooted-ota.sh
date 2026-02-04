@@ -413,11 +413,11 @@ EOL
   ../.tmp/afsr unpack -i raw.img
 
   # add file and add selinux policy for it
-  cp "../GesturePillOverlay.apk" "fs_tree/product/overlay/GesturePillOverlay.apk"
+  cp "../GesturePillOverlay.apk" "fs_tree/overlay/GesturePillOverlay.apk"
 
   cat << EOL >> fs_metadata.toml
 [[entries]]
-path = "/product/overlay/GesturePillOverlay.apk"
+path = "/overlay/GesturePillOverlay.apk"
 file_type = "RegularFile"
 file_mode = "644"
 atime = "2009-01-01T00:00:00Z"
