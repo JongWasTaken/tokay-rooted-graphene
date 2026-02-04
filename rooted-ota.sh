@@ -131,7 +131,7 @@ function createRootedOta() {
 
 function cleanup() {
   print "Cleaning up..."
-  rm -rf .tmp
+  #rm -rf .tmp
   unset KEY_AVB_BASE64 KEY_OTA_BASE64 CERT_OTA_BASE64
   print "Cleanup complete."
 }
@@ -368,7 +368,7 @@ function patchOTAs() {
 # Not part of schnatterer/rooted-graphene, was added by Tiebe/rooted-graphene, changed up by me
 function patchPartitions() {
   # extract system image
-  .tmp/avbroot ota extract -i ".tmp/$OTA_TARGET.zip" -d extracted
+  .tmp/avbroot ota extract -i ".tmp/$OTA_TARGET.zip" -d extracted -a
   cd extracted
 
   ../.tmp/avbroot avb unpack -i system.img
@@ -405,9 +405,11 @@ EOL
     --recompute-size
 
   rm raw.img
+  rm avb.toml
+  rm fs_metadata.toml
 
   # same for product
-  ../.tmp/avbroot avb unpack -i product.img
+  ../.tmp/avbroot avb unpack -i partition.img
   ../.tmp/afsr unpack -i raw.img
 
   # add file and add selinux policy for it
@@ -439,6 +441,10 @@ EOL
     -k "../$KEY_AVB" \
     --pass-env-var "AVB_KEY_PASS" \
     --recompute-size
+
+  rm raw.img
+  rm avb.toml
+  rm fs_metadata.toml
 
   # finally rebuild
   cd ..
