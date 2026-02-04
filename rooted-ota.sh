@@ -409,7 +409,7 @@ EOL
   rm fs_metadata.toml
 
   # same for product
-  ../.tmp/avbroot avb unpack -i partition.img
+  ../.tmp/avbroot avb unpack -i product.img
   ../.tmp/afsr unpack -i raw.img
 
   # add file and add selinux policy for it
