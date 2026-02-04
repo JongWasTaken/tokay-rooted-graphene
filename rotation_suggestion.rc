@@ -1,0 +1,12 @@
+########################################
+# /system/etc/init/rotation_suggestion.rc #
+########################################
+
+# Disable rotation suggestions after boot
+on property:sys.boot_completed=1
+    start disable_rotation_suggestions
+
+service disable_rotation_suggestions /system/bin/settings put secure show_rotation_suggestions 0
+    class late_start
+    user system
+    oneshot

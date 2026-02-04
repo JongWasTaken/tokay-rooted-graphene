@@ -67,17 +67,17 @@ NO_COLOR=${NO_COLOR:-''}
 OTA_BASE_URL="https://releases.grapheneos.org"
 
 # renovate: datasource=github-releases packageName=chenxiaolong/avbroot versioning=semver
-AVB_ROOT_VERSION=3.23.2
+AVB_ROOT_VERSION=3.24.1
 # renovate: datasource=github-releases packageName=chenxiaolong/Custota versioning=semver-coerced
-CUSTOTA_VERSION=5.18
+CUSTOTA_VERSION=5.21
 # renovate: datasource=git-refs packageName=https://github.com/chenxiaolong/my-avbroot-setup currentValue=master
-PATCH_PY_COMMIT=16636c3
+PATCH_PY_COMMIT=84139189c8cbe244a676582a3b3517f31fabc421
 # renovate: datasource=docker packageName=python
-PYTHON_VERSION=3.13.3-alpine
+PYTHON_VERSION=3.14.2-alpine
 # renovate: datasource=github-releases packageName=chenxiaolong/OEMUnlockOnBoot versioning=semver-coerced
 OEMUNLOCKONBOOT_VERSION=1.3
 # renovate: datasource=github-releases packageName=chenxiaolong/afsr versioning=semver
-AFSR_VERSION=1.0.3
+AFSR_VERSION=1.0.4
 
 CHENXIAOLONG_PK='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDOe6/tBnO7xZhAWXRj3ApUYgn+XZ0wnQiXM8B7tPgv4'
 GIT_PUSH_RETRIES=10
@@ -318,16 +318,7 @@ function patchOTAs() {
     if ls "$targetFile" >/dev/null 2>&1; then
       printGreen "File $targetFile already exists locally, not patching."
     else
-      #patchSystem
-        .tmp/avbroot ota patch \
-          -i ".tmp/$OTA_TARGET.zip" \
-          -o ".tmp/$OTA_TARGET.zip.patched" \
-          --key-avb "$KEY_AVB" \
-          --key-ota "$KEY_OTA" \
-          --cert-ota "$CERT_OTA" \
-          --pass-avb-env-var "PASSPHRASE_AVB" \
-          --pass-ota-env-var "PASSPHRASE_OTA" \
-          --rootless
+      patchPartitions
       local args=()
 
       args+=("--output" "$targetFile")
@@ -374,8 +365,8 @@ function patchOTAs() {
   done
 }
 
-# Not part of schnatterer/rooted-graphene, was added by Tiebe/rooted-graphene. (gesture_pill.rc does not seem to actually work...)
-function patchSystem() {
+# Not part of schnatterer/rooted-graphene, was added by Tiebe/rooted-graphene, changed up by me
+function patchPartitions() {
   # extract system image
   .tmp/avbroot ota extract -i ".tmp/$OTA_TARGET.zip" -d extracted
   cd extracted
@@ -384,11 +375,11 @@ function patchSystem() {
   ../.tmp/afsr unpack -i raw.img
 
   # add file and add selinux policy for it
-  cp "../gesture_pill.rc" "fs_tree/system/etc/init/gesture_pill.rc"
+  cp "../rotation_suggestion.rc" "fs_tree/system/etc/init/rotation_suggestion.rc"
 
   cat << EOL >> fs_metadata.toml
 [[entries]]
-path = "/system/etc/init/gesture_pill.rc"
+path = "/system/etc/init/rotation_suggestion.rc"
 file_type = "RegularFile"
 file_mode = "644"
 atime = "2009-01-01T00:00:00Z"
@@ -413,12 +404,50 @@ EOL
     --pass-env-var "AVB_KEY_PASS" \
     --recompute-size
 
+  rm raw.img
+
+  # same for product
+  ../.tmp/avbroot avb unpack -i product.img
+  ../.tmp/afsr unpack -i raw.img
+
+  # add file and add selinux policy for it
+  cp "../GesturePillOverlay.apk" "fs_tree/product/overlay/GesturePillOverlay.apk"
+
+  cat << EOL >> fs_metadata.toml
+[[entries]]
+path = "/product/overlay/GesturePillOverlay.apk"
+file_type = "RegularFile"
+file_mode = "644"
+atime = "2009-01-01T00:00:00Z"
+ctime = "2009-01-01T00:00:00Z"
+mtime = "2009-01-01T00:00:00Z"
+crtime = "2009-01-01T00:00:00Z"
+
+[entries.xattrs]
+"security.selinux" = 'u:object_r:system_file:s0\0'
+EOL
+
+  # repack product image and replace original
+  export AVB_KEY_PASS="$PASSPHRASE_AVB"
+  export OTA_KEY_PASS="$PASSPHRASE_OTA"
+
+  touch avb.toml
+
+  ../.tmp/afsr pack -o raw.img
+  ../.tmp/avbroot avb pack \
+    -o product.img \
+    -k "../$KEY_AVB" \
+    --pass-env-var "AVB_KEY_PASS" \
+    --recompute-size
+
+  # finally rebuild
   cd ..
 
   .tmp/avbroot ota patch \
     -i ".tmp/$OTA_TARGET.zip" \
     -o ".tmp/$OTA_TARGET.zip.patched" \
     --replace system extracted/system.img \
+    --replace product extracted/product.img \
     --key-avb "$KEY_AVB" \
     --key-ota "$KEY_OTA" \
     --cert-ota "$CERT_OTA" \
