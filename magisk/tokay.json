@@ -1,7 +1,7 @@
 {
   "version": 2,
   "full": {
-    "location_ota": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2026020600/tokay-2026020600-3496a7b-magisk-v30.6.zip",
-    "location_csig": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2026020600/tokay-2026020600-3496a7b-magisk-v30.6.zip.csig"
+    "location_ota": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2026021200/tokay-2026021200-3496a7b-magisk-v30.6.zip",
+    "location_csig": "https://github.com/JongWasTaken/tokay-rooted-graphene/releases/download/2026021200/tokay-2026021200-3496a7b-magisk-v30.6.zip.csig"
   }
 }
