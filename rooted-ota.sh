@@ -252,15 +252,16 @@ function findLatestVersion() {
   print "Magisk version: $MAGISK_VERSION"
 
   # Search for a new version grapheneos.
-  # e.g. https://releases.grapheneos.org/shiba-stable
+  # e.g. https://releases.grapheneos.org/tokay-stable
 
   if [[ "$OTA_VERSION" == 'latest' ]]; then
     OTA_VERSION=$(curl --fail -sL "$OTA_BASE_URL/$DEVICE_ID-$OTA_CHANNEL" | head -n1 | awk '{print $1;}')
+    OTA_VERSION="${OTA_VERSION/%0/1}"
   fi
   GRAPHENE_TYPE=${GRAPHENE_TYPE:-'ota_update'} # Other option: factory
   OTA_TARGET="$DEVICE_ID-$GRAPHENE_TYPE-$OTA_VERSION"
   OTA_URL="$OTA_BASE_URL/$OTA_TARGET.zip"
-  # e.g.  shiba-ota_update-2023121200
+  # e.g.  tokay-ota_update-2026061600
   print "OTA target: $OTA_TARGET; OTA URL: $OTA_URL"
 }
 
