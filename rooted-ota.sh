@@ -424,7 +424,6 @@ EOL
     -i ".tmp/$OTA_TARGET.zip" \
     -o ".tmp/$OTA_TARGET.zip.patched" \
     --replace system extracted/system.img \
-    #--replace product extracted/product.img \
     --key-avb "$KEY_AVB" \
     --key-ota "$KEY_OTA" \
     --cert-ota "$CERT_OTA" \
