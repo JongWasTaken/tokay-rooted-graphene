@@ -141,12 +141,12 @@ function checkBuildNecessary() {
   currentCommit=$(git rev-parse --short HEAD)
   POTENTIAL_ASSETS=()
     
-  #if [[ -n "$MAGISK_PREINIT_DEVICE" ]]; then 
-  #  # e.g. oriole-2023121200-magisk-v26.4-4647f74-dirty.zip
-  #  POTENTIAL_ASSETS['magisk']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-magisk-${MAGISK_VERSION}$(createAssetSuffix).zip"
-  #else 
-  #  printGreen "MAGISK_PREINIT_DEVICE not set for device, not creating magisk OTA"
-  #fi
+  if [[ -n "$MAGISK_PREINIT_DEVICE" ]]; then 
+    # e.g. oriole-2023121200-magisk-v26.4-4647f74-dirty.zip
+    POTENTIAL_ASSETS['magisk']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-magisk-${MAGISK_VERSION}$(createAssetSuffix).zip"
+  else 
+    printGreen "MAGISK_PREINIT_DEVICE not set for device, not creating magisk OTA"
+  fi
   
   if [[ "$SKIP_ROOTLESS" != 'true' ]]; then
     POTENTIAL_ASSETS['rootless']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-rootless$(createAssetSuffix).zip"
