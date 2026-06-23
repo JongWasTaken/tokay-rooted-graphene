@@ -67,11 +67,11 @@ NO_COLOR=${NO_COLOR:-''}
 OTA_BASE_URL="https://releases.grapheneos.org"
 
 # renovate: datasource=github-releases packageName=chenxiaolong/avbroot versioning=semver
-AVB_ROOT_VERSION=3.29.0
+AVB_ROOT_VERSION=3.31.0
 # renovate: datasource=github-releases packageName=chenxiaolong/Custota versioning=semver-coerced
-CUSTOTA_VERSION=5.21
+CUSTOTA_VERSION=6.1
 # renovate: datasource=git-refs packageName=https://github.com/chenxiaolong/my-avbroot-setup currentValue=master
-PATCH_PY_COMMIT=84139189c8cbe244a676582a3b3517f31fabc421
+PATCH_PY_COMMIT=e74fef42b5a5e71f0d6c0772dafd715b5e5a2a9c
 # renovate: datasource=docker packageName=python
 PYTHON_VERSION=3.14.2-alpine
 # renovate: datasource=github-releases packageName=chenxiaolong/OEMUnlockOnBoot versioning=semver-coerced
@@ -141,12 +141,12 @@ function checkBuildNecessary() {
   currentCommit=$(git rev-parse --short HEAD)
   POTENTIAL_ASSETS=()
     
-  if [[ -n "$MAGISK_PREINIT_DEVICE" ]]; then 
-    # e.g. oriole-2023121200-magisk-v26.4-4647f74-dirty.zip
-    POTENTIAL_ASSETS['magisk']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-magisk-${MAGISK_VERSION}$(createAssetSuffix).zip"
-  else 
-    printGreen "MAGISK_PREINIT_DEVICE not set for device, not creating magisk OTA"
-  fi
+  #if [[ -n "$MAGISK_PREINIT_DEVICE" ]]; then 
+  #  # e.g. oriole-2023121200-magisk-v26.4-4647f74-dirty.zip
+  #  POTENTIAL_ASSETS['magisk']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-magisk-${MAGISK_VERSION}$(createAssetSuffix).zip"
+  #else 
+  #  printGreen "MAGISK_PREINIT_DEVICE not set for device, not creating magisk OTA"
+  #fi
   
   if [[ "$SKIP_ROOTLESS" != 'true' ]]; then
     POTENTIAL_ASSETS['rootless']="${DEVICE_ID}-${OTA_VERSION}-${currentCommit}-rootless$(createAssetSuffix).zip"
@@ -374,6 +374,13 @@ function patchPartitions() {
   ../.tmp/avbroot avb unpack -i system.img
   ../.tmp/afsr unpack -i raw.img
 
+  rm ./fs_tree/system/etc/hosts
+  curl https://adaway.org/hosts.txt >> ./temphosts
+  curl https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts >> ./temphosts
+  curl https://pgl.yoyo.org/adservers/serverlist.php\?hostformat=hosts\&showintro=0\&mimetype=plaintext >> ./temphosts
+  cat ./temphosts | sort -u > ./fs_tree/system/etc/hosts
+  rm ./temphosts
+
   # add file and add selinux policy for it
   cp "../rotation_suggestion.rc" "fs_tree/system/etc/init/rotation_suggestion.rc"
 
@@ -409,45 +416,6 @@ EOL
   rm fs_metadata.toml
   rm -rf fs_tree
 
-  # same for product
-  ../.tmp/avbroot avb unpack -i product.img
-  ../.tmp/afsr unpack -i raw.img
-
-  # add file and add selinux policy for it
-  cp "../GesturePillOverlay.apk" "fs_tree/overlay/GesturePillOverlay.apk"
-
-  cat << EOL >> fs_metadata.toml
-[[entries]]
-path = "/overlay/GesturePillOverlay.apk"
-file_type = "RegularFile"
-file_mode = "644"
-atime = "2009-01-01T00:00:00Z"
-ctime = "2009-01-01T00:00:00Z"
-mtime = "2009-01-01T00:00:00Z"
-crtime = "2009-01-01T00:00:00Z"
-
-[entries.xattrs]
-"security.selinux" = 'u:object_r:system_file:s0\0'
-EOL
-
-  # repack product image and replace original
-  export AVB_KEY_PASS="$PASSPHRASE_AVB"
-  export OTA_KEY_PASS="$PASSPHRASE_OTA"
-
-  touch avb.toml
-
-  ../.tmp/afsr pack -o raw.img
-  ../.tmp/avbroot avb pack \
-    -o product.img \
-    -k "../$KEY_AVB" \
-    --pass-env-var "AVB_KEY_PASS" \
-    --recompute-size
-
-  rm raw.img
-  rm avb.toml
-  rm fs_metadata.toml
-  rm -rf fs_tree
-
   # finally rebuild
   cd ..
 
@@ -455,7 +423,7 @@ EOL
     -i ".tmp/$OTA_TARGET.zip" \
     -o ".tmp/$OTA_TARGET.zip.patched" \
     --replace system extracted/system.img \
-    --replace product extracted/product.img \
+    #--replace product extracted/product.img \
     --key-avb "$KEY_AVB" \
     --key-ota "$KEY_OTA" \
     --cert-ota "$CERT_OTA" \

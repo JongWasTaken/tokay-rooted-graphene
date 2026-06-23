@@ -5,3 +5,5 @@
 /*.zip
 /*.zip.patched
 /.tmp/
+/extracted/
+/extracted/*
