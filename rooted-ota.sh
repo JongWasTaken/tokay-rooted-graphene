@@ -247,7 +247,8 @@ function findLatestVersion() {
   checkMandatoryVariable DEVICE_ID
 
   if [[ "$MAGISK_VERSION" == 'latest' ]]; then
-    MAGISK_VERSION=$(curl --silent "https://api.github.com/repos/pixincreate/Magisk/releases" | jq -r '.[0].tag_name')
+    # Include pre-releases: pick the most recently published release regardless of the prerelease flag
+    MAGISK_VERSION=$(curl --silent "https://api.github.com/repos/pixincreate/Magisk/releases" | jq -r '[.[] | select(.draft | not)] | sort_by(.published_at) | last | .tag_name')
   fi
   print "Magisk version: $MAGISK_VERSION"
 
@@ -375,6 +376,7 @@ function patchPartitions() {
   ../.tmp/avbroot avb unpack -i system.img
   ../.tmp/afsr unpack -i raw.img
 
+  # install adblock lists
   rm ./fs_tree/system/etc/hosts
   curl https://adaway.org/hosts.txt >> ./temphosts
   curl https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts >> ./temphosts
@@ -382,7 +384,7 @@ function patchPartitions() {
   cat ./temphosts | sort -u > ./fs_tree/system/etc/hosts
   rm ./temphosts
 
-  # add file and add selinux policy for it
+  # disable rotation suggestion button and add selinux policy for it
   cp "../rotation_suggestion.rc" "fs_tree/system/etc/init/rotation_suggestion.rc"
 
   cat << EOL >> fs_metadata.toml
