@@ -235,7 +235,7 @@ function downloadAndroidDependencies() {
 
   mkdir -p .tmp
   if ! ls ".tmp/magisk-$MAGISK_VERSION.apk" >/dev/null 2>&1 && [[ "${POTENTIAL_ASSETS['magisk']+isset}" ]]; then
-    curl --fail -sLo ".tmp/magisk-$MAGISK_VERSION.apk" "https://github.com/pixincreate/Magisk/releases/download/$MAGISK_VERSION/app-release.apk"
+    curl --fail -sLo ".tmp/magisk-$MAGISK_VERSION.apk" "${MAGISK_APK_URL:-https://github.com/pixincreate/Magisk/releases/download/$MAGISK_VERSION/app-release.apk}"
   fi
 
   if ! ls ".tmp/$OTA_TARGET.zip" >/dev/null 2>&1; then
@@ -246,11 +246,24 @@ function downloadAndroidDependencies() {
 function findLatestVersion() {
   checkMandatoryVariable DEVICE_ID
 
+  local magiskReleases
+  magiskReleases=$(curl --silent "https://api.github.com/repos/pixincreate/Magisk/releases")
+
   if [[ "$MAGISK_VERSION" == 'latest' ]]; then
     # Include pre-releases: pick the most recently published release regardless of the prerelease flag
-    MAGISK_VERSION=$(curl --silent "https://api.github.com/repos/pixincreate/Magisk/releases" | jq -r '[.[] | select(.draft | not)] | sort_by(.published_at) | last | .tag_name')
+    MAGISK_VERSION=$(echo "$magiskReleases" | jq -r '[.[] | select(.draft | not)] | sort_by(.published_at) | last | .tag_name')
   fi
   print "Magisk version: $MAGISK_VERSION"
+
+  # Resolve the APK download URL for the selected release. The asset name varies between
+  # releases (app-release.apk on stable/canary, Magisk-<version>.apk on recent pre-releases).
+  MAGISK_APK_URL=$(echo "$magiskReleases" | jq -r --arg tag "$MAGISK_VERSION" '
+    (.[] | select(.tag_name == $tag) | .assets
+      | ( map(select(.name == "app-release.apk"))
+        + map(select(.name | test("^Magisk-.*\\.apk$")))
+        + map(select((.name | endswith(".apk")) and (.name | contains("debug") | not))) )
+      | first | .browser_download_url) // empty')
+  [[ -z "$MAGISK_APK_URL" ]] && MAGISK_APK_URL="https://github.com/pixincreate/Magisk/releases/download/${MAGISK_VERSION}/app-release.apk"
 
   # Search for a new version grapheneos.
   # e.g. https://releases.grapheneos.org/tokay-stable
