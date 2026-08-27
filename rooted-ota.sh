@@ -370,8 +370,9 @@ function patchOTAs() {
         -e PASSPHRASE_AVB="$PASSPHRASE_AVB" -e PASSPHRASE_OTA="$PASSPHRASE_OTA" \
         python:${PYTHON_VERSION} sh -c \
           "apk add openssh && \
-           pip install -r .tmp/my-avbroot-setup/requirements.txt && \
-           python .tmp/my-avbroot-setup/patch.py ${args[*]} && \
+           pip install uv && \
+           uv run --project .tmp/my-avbroot-setup --frozen --python python3 \
+             python .tmp/my-avbroot-setup/patch.py ${args[*]} && \
            chown -R $(id -u):$(id -g) .tmp"
     
        printGreen "Finished patching file ${targetFile}"
