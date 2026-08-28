@@ -352,7 +352,8 @@ function patchOTAs() {
         args+=("--patch-arg=--magisk" "--patch-arg" ".tmp/magisk-$MAGISK_VERSION.apk")
         args+=("--patch-arg=--magisk-preinit-device" "--patch-arg" "$MAGISK_PREINIT_DEVICE")
         if [[ "$MAGISK_IGNORE_WARNINGS" == 'true' ]]; then
-          args+=("--patch-arg" "--ignore-magisk-warnings")
+          # equals form required: patch.py's argparse treats a bare "--..." value as a flag
+          args+=("--patch-arg=--ignore-magisk-warnings")
         fi
       fi
 
