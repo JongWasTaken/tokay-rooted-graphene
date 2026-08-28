@@ -39,6 +39,13 @@ OTA_VERSION=${OTA_VERSION:-'latest'}
 DEFAULT_MAGISK_VERSION=latest
 MAGISK_VERSION=${MAGISK_VERSION:-${DEFAULT_MAGISK_VERSION}}
 
+# avbroot whitelists a range of known-good Magisk versions and aborts on anything newer.
+# 'true' passes --ignore-magisk-warnings so avbroot patches with a Magisk (pre-)release
+# newer than its whitelist. Defaults on here because DEFAULT_MAGISK_VERSION=latest tracks
+# pre-releases and regularly runs ahead of the pinned AVB_ROOT_VERSION. Set 'false' to
+# re-enable the check.
+MAGISK_IGNORE_WARNINGS=${MAGISK_IGNORE_WARNINGS:-true}
+
 SKIP_CLEANUP=${SKIP_CLEANUP:-''}
 
 # For committing to GH pages in different repo, clone it to a different folder and set this var
@@ -344,6 +351,9 @@ function patchOTAs() {
       if [[ "$flavor" == 'magisk' ]]; then
         args+=("--patch-arg=--magisk" "--patch-arg" ".tmp/magisk-$MAGISK_VERSION.apk")
         args+=("--patch-arg=--magisk-preinit-device" "--patch-arg" "$MAGISK_PREINIT_DEVICE")
+        if [[ "$MAGISK_IGNORE_WARNINGS" == 'true' ]]; then
+          args+=("--patch-arg" "--ignore-magisk-warnings")
+        fi
       fi
 
       # If env vars not set, passphrases will be queried interactively
